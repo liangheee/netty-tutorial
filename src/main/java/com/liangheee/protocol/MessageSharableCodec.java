@@ -1,6 +1,8 @@
 package com.liangheee.protocol;
 
+import com.liangheee.config.Config;
 import com.liangheee.message.Message;
+import com.liangheee.protocol.serialize.Serializer;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
@@ -27,8 +29,9 @@ public class MessageSharableCodec extends MessageToMessageCodec<ByteBuf,Message>
         out.writeBytes(new byte[]{1, 2, 3, 4});
         // 1字节版本号
         out.writeByte(1);
-        // 1字节序列化算法 0-json 1-jdk
-        out.writeByte(1);
+        // 1字节序列化算法 0-jdk 1-json
+        Serializer.Algorithm algorithm = Config.serDeAlgorithm();
+        out.writeByte(algorithm.ordinal());
         // 1字节指令类型
         out.writeByte(msg.getMessageType());
         // 4字节指令序号
@@ -38,10 +41,11 @@ public class MessageSharableCodec extends MessageToMessageCodec<ByteBuf,Message>
         out.writeByte(0xff);
 
         // 序列化消息正文
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        ObjectOutputStream oos = new ObjectOutputStream(bos);
-        oos.writeObject(msg);
-        byte[] byteArray = bos.toByteArray();
+        // ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        // ObjectOutputStream oos = new ObjectOutputStream(bos);
+        // oos.writeObject(msg);
+        // byte[] byteArray = bos.toByteArray();
+        byte[] byteArray = algorithm.serialize(msg);
 
         // 4字节正文长度
         out.writeInt(byteArray.length);
@@ -74,8 +78,11 @@ public class MessageSharableCodec extends MessageToMessageCodec<ByteBuf,Message>
         // 正文内容
         byte[] bytes = new byte[length];
         in.readBytes(bytes,0,length);
-        ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(bytes));
-        Message msg = (Message) ois.readObject();
+        // ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(bytes));
+        // Message msg = (Message) ois.readObject();
+        Serializer.Algorithm serDe = Serializer.Algorithm.values()[serializeType];
+        Message msg = serDe.deSerialize(Message.getMessageClass(commandType), bytes);
+
         out.add(msg);
     }
 }

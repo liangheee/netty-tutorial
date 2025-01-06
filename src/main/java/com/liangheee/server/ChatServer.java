@@ -1,5 +1,6 @@
 package com.liangheee.server;
 
+import com.liangheee.config.Config;
 import com.liangheee.protocol.MessageSharableCodec;
 import com.liangheee.protocol.ProtocolFrameDecoder;
 import com.liangheee.server.handler.*;
@@ -62,7 +63,7 @@ public class ChatServer {
                             ch.pipeline().addLast(GROUP_QUIT_REQUEST_HANDLER);
                             ch.pipeline().addLast(GROUP_MEMBERS_REQUEST_HANDLER);
                         }
-                    }).bind(8080);
+                    }).bind(Config.serverPort());
 
             Channel channel = channelFuture.channel();
             channel.closeFuture().sync();
