@@ -10,6 +10,9 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
+import io.netty.handler.timeout.IdleState;
+import io.netty.handler.timeout.IdleStateEvent;
+import io.netty.handler.timeout.IdleStateHandler;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -35,6 +38,22 @@ public class ChatServer {
                             ch.pipeline().addLast(new ProtocolFrameDecoder()); // 解决黏包和半包问题
                             ch.pipeline().addLast(LOGGING_HANDLER);
                             ch.pipeline().addLast(MESSAGE_CODEC);
+                            // 为了处理假死状态，加入空闲状态处理器，检测读空闲 或 写空闲
+                            // 对于Server一般检测读空闲，这里我们设置读空闲超过5s就触发读空闲事件处理
+                            ch.pipeline().addLast(new IdleStateHandler(5,0,0));
+                            ch.pipeline().addLast(new ChannelDuplexHandler(){
+                                @Override
+                                public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
+                                    if(evt instanceof IdleStateEvent){
+                                        IdleStateEvent idleStateEvent = (IdleStateEvent) evt;
+                                        if(idleStateEvent.state() == IdleState.READER_IDLE){
+                                            // 处理读空闲事件
+                                            log.debug("已经5s没有读到数据");
+                                            ctx.channel().close();
+                                        }
+                                    }
+                                }
+                            });
                             ch.pipeline().addLast(LOGIN_REQUEST_HANDLER);
                             ch.pipeline().addLast(CHAT_REQUEST_HANDLER);
                             ch.pipeline().addLast(GROUP_CREATE_REQUEST_HANDLER);

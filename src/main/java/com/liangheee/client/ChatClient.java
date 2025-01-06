@@ -9,6 +9,9 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
+import io.netty.handler.timeout.IdleState;
+import io.netty.handler.timeout.IdleStateEvent;
+import io.netty.handler.timeout.IdleStateHandler;
 import lombok.extern.slf4j.Slf4j;
 
 import java.net.InetSocketAddress;
@@ -31,6 +34,21 @@ public class ChatClient {
                         protected void initChannel(NioSocketChannel ch) throws Exception {
                             ch.pipeline().addLast(new ProtocolFrameDecoder()); // 解决黏包和半包问题
                             ch.pipeline().addLast(MESSAGE_CODEC);
+                            // 检测写空闲状态
+                            ch.pipeline().addLast(new IdleStateHandler(0,3,0));
+                            ch.pipeline().addLast(new ChannelDuplexHandler(){
+                                @Override
+                                public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
+                                    if(evt instanceof IdleStateEvent){
+                                        IdleStateEvent idleStateEvent = (IdleStateEvent) evt;
+                                        if(idleStateEvent.state() == IdleState.WRITER_IDLE){
+                                            // 写空闲后，向服务端发送心跳包
+                                            log.debug("发送心跳包");
+                                            ctx.writeAndFlush(new PingMessage());
+                                        }
+                                    }
+                                }
+                            });
                             ch.pipeline().addLast(channelInboundHandlerAdapter());
                         }
                     })
