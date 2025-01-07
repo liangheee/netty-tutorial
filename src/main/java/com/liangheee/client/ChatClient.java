@@ -1,8 +1,10 @@
 package com.liangheee.client;
 
+import com.liangheee.config.Config;
 import com.liangheee.message.*;
 import com.liangheee.protocol.MessageSharableCodec;
 import com.liangheee.protocol.ProtocolFrameDecoder;
+import com.liangheee.util.SequenceIdGenerator;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -43,8 +45,9 @@ public class ChatClient {
                                         IdleStateEvent idleStateEvent = (IdleStateEvent) evt;
                                         if(idleStateEvent.state() == IdleState.WRITER_IDLE){
                                             // 写空闲后，向服务端发送心跳包
-                                            log.debug("发送心跳包");
-                                            ctx.writeAndFlush(new PingMessage());
+                                            PingMessage message = new PingMessage();
+                                            message.setSequenceId(SequenceIdGenerator.nextId());
+                                            ctx.writeAndFlush(message);
                                         }
                                     }
                                 }
@@ -52,7 +55,7 @@ public class ChatClient {
                             ch.pipeline().addLast(channelInboundHandlerAdapter());
                         }
                     })
-                    .connect(new InetSocketAddress("localhost", 8080));
+                    .connect(new InetSocketAddress("localhost", Config.serverPort()));
             Channel channel = channelFuture.sync().channel();
             channel.closeFuture().sync();
         } catch (Exception e){
@@ -106,28 +109,34 @@ public class ChatClient {
                             switch (commands[0]){
                                 case "send":
                                     ChatRequestMessage chatRequestMessage = new ChatRequestMessage(username, commands[1], commands[2]);
+                                    chatRequestMessage.setSequenceId(SequenceIdGenerator.nextId());
                                     ctx.writeAndFlush(chatRequestMessage);
                                     break;
                                 case "gsend":
                                     GroupChatRequestMessage groupChatRequestMessage = new GroupChatRequestMessage(username, commands[1], commands[2]);
+                                    groupChatRequestMessage.setSequenceId(SequenceIdGenerator.nextId());
                                     ctx.writeAndFlush(groupChatRequestMessage);
                                     break;
                                 case "gcreate":
                                     Set<String> members = new HashSet<>(Arrays.asList(commands[2].split(",")));
                                     members.add(username);
                                     GroupCreateRequestMessage groupCreateRequestMessage = new GroupCreateRequestMessage(username,commands[1],new HashSet<>(members));
+                                    groupCreateRequestMessage.setSequenceId(SequenceIdGenerator.nextId());
                                     ctx.writeAndFlush(groupCreateRequestMessage);
                                     break;
                                 case "gmembers":
                                     GroupMembersRequestMessage groupMembersRequestMessage = new GroupMembersRequestMessage(commands[1]);
+                                    groupMembersRequestMessage.setSequenceId(SequenceIdGenerator.nextId());
                                     ctx.writeAndFlush(groupMembersRequestMessage);
                                     break;
                                 case "gjoin":
                                     GroupJoinRequestMessage groupJoinRequestMessage = new GroupJoinRequestMessage(username, commands[1]);
+                                    groupJoinRequestMessage.setSequenceId(SequenceIdGenerator.nextId());
                                     ctx.writeAndFlush(groupJoinRequestMessage);
                                     break;
                                 case "gquit":
                                     GroupQuitRequestMessage groupQuitRequestMessage = new GroupQuitRequestMessage(username, commands[1]);
+                                    groupQuitRequestMessage.setSequenceId(SequenceIdGenerator.nextId());
                                     ctx.writeAndFlush(groupQuitRequestMessage);
                                     break;
                                 case "quit":

@@ -20,6 +20,7 @@ public class LoginRequestMessageHandler extends SimpleChannelInboundHandler<Logi
         }else{
             message = new LoginResponseMessage(false,"登陆名或密码错误");
         }
+        message.setSequenceId(msg.getSequenceId());
         ctx.writeAndFlush(message);
     }
 }

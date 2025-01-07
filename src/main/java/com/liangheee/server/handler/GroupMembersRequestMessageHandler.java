@@ -23,6 +23,7 @@ public class GroupMembersRequestMessageHandler extends SimpleChannelInboundHandl
             Set<String> members = GroupSessionFactory.getGroupSession().getMembers(groupName);
             message = new GroupMembersResponseMessage(members);
         }
+        message.setSequenceId(msg.getSequenceId());
         ctx.writeAndFlush(message);
     }
 }

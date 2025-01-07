@@ -23,11 +23,13 @@ public class GroupQuitRequestMessageHandler extends SimpleChannelInboundHandler<
         if(group != null){
             // 群组存在
             message = new GroupQuitResponseMessage(username,"退出群组【" + groupName + "】");
+            message.setSequenceId(msg.getSequenceId());
             List<Channel> membersChannel = GroupSessionFactory.getGroupSession().getMembersChannel(groupName);
             membersChannel.forEach(ch -> ch.writeAndFlush(message));
         }else{
             // 群组不存在
             message = new GroupQuitResponseMessage(false,"退出群组失败，群组【" + groupName + "】不存在");
+            message.setSequenceId(msg.getSequenceId());
             ctx.writeAndFlush(message);
         }
     }

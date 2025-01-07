@@ -16,6 +16,8 @@ public class ChatRequestMessageHandler extends SimpleChannelInboundHandler<ChatR
         String receiver = msg.getTo();
         String content = msg.getContent();
         Channel channel = SessionFactory.getSession().getChannel(receiver);
-        channel.writeAndFlush(new ChatResponseMessage(sender, content));
+        ChatResponseMessage chatResponseMessage = new ChatResponseMessage(sender, content);
+        chatResponseMessage.setSequenceId(msg.getSequenceId());
+        channel.writeAndFlush(chatResponseMessage);
     }
 }

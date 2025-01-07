@@ -28,6 +28,7 @@ public class ChatServer {
         GroupJoinRequestMessageHandler GROUP_JOIN_REQUEST_HANDLER = new GroupJoinRequestMessageHandler();
         GroupQuitRequestMessageHandler GROUP_QUIT_REQUEST_HANDLER = new GroupQuitRequestMessageHandler();
         GroupMembersRequestMessageHandler GROUP_MEMBERS_REQUEST_HANDLER = new GroupMembersRequestMessageHandler();
+        PingMessageHandler PING_HANDLER = new PingMessageHandler();
         NioEventLoopGroup group = new NioEventLoopGroup();
         try {
             ChannelFuture channelFuture = new ServerBootstrap()
@@ -62,6 +63,7 @@ public class ChatServer {
                             ch.pipeline().addLast(GROUP_JOIN_REQUEST_HANDLER);
                             ch.pipeline().addLast(GROUP_QUIT_REQUEST_HANDLER);
                             ch.pipeline().addLast(GROUP_MEMBERS_REQUEST_HANDLER);
+                            ch.pipeline().addLast(PING_HANDLER);
                         }
                     }).bind(Config.serverPort());
 

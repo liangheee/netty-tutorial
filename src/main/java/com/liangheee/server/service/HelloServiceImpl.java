@@ -2,8 +2,8 @@ package com.liangheee.server.service;
 
 public class HelloServiceImpl implements HelloService {
     @Override
-    public String sayHello(String msg) {
+    public String sayHello(String name) {
         int i = 1 / 0;
-        return "你好, " + msg;
+        return "你好, " + name;
     }
 }

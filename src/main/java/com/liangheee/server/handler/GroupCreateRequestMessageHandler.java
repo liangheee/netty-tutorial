@@ -27,6 +27,7 @@ public class GroupCreateRequestMessageHandler extends SimpleChannelInboundHandle
         if(group == null){
             // 创建成功
             message = new GroupCreateResponseMessage(true, from + "创建了群组【" + groupName + "】");
+            message.setSequenceId(msg.getSequenceId());
             // 发送创建群聊成功消息
             List<Channel> membersChannel = GroupSessionFactory.getGroupSession().getMembersChannel(groupName);
             membersChannel.forEach(ch -> {
@@ -35,6 +36,7 @@ public class GroupCreateRequestMessageHandler extends SimpleChannelInboundHandle
         }else{
             // 创建失败
             message = new GroupCreateResponseMessage(false,"创建群组失败");
+            message.setSequenceId(msg.getSequenceId());
             ctx.writeAndFlush(message);
         }
 

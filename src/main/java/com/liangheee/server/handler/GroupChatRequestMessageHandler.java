@@ -26,6 +26,7 @@ public class GroupChatRequestMessageHandler extends SimpleChannelInboundHandler<
         if(!groupExists){
             // 如果群组不存在
             groupChatResponseMessage = new GroupChatResponseMessage(false,"发送消息失败，群组【" + groupName + "】不存在");
+            groupChatResponseMessage.setSequenceId(msg.getSequenceId());
             ctx.writeAndFlush(groupChatResponseMessage);
         }else{
             // 如果群组存在
@@ -35,6 +36,7 @@ public class GroupChatRequestMessageHandler extends SimpleChannelInboundHandler<
             List<Channel> membersChannelExclusiveSender = membersChannel.stream().filter(ch -> ch != channel).collect(Collectors.toList());
 
             groupChatResponseMessage = new GroupChatResponseMessage(sender, content);
+            groupChatResponseMessage.setSequenceId(msg.getSequenceId());
 
             membersChannelExclusiveSender.forEach(ch -> ch.writeAndFlush(groupChatResponseMessage));
         }

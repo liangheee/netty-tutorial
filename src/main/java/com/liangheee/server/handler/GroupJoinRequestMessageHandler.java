@@ -23,10 +23,12 @@ public class GroupJoinRequestMessageHandler extends SimpleChannelInboundHandler<
         if(group != null){
             // 当前组存在，加入组成功
             message = new GroupJoinResponseMessage(true,username + "加入群组【" + groupName + "】");
+            message.setSequenceId(msg.getSequenceId());
             List<Channel> membersChannel = GroupSessionFactory.getGroupSession().getMembersChannel(groupName);
             membersChannel.forEach(ch -> ch.writeAndFlush(message));
         }else{
             message = new GroupJoinResponseMessage(false,"群组【" + groupName + "】可能存不在，加入群组失败");
+            message.setSequenceId(msg.getSequenceId());
             ctx.writeAndFlush(message);
         }
     }
